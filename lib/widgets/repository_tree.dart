@@ -289,7 +289,7 @@ class _RepositoryTreeState extends State<RepositoryTree> {
                       final newReq = ApiRequest(
                         id: DateTime.now().millisecondsSinceEpoch.toString(),
                         name: 'New Request',
-                        url: '{{baseUrl}}/',
+                        url: '',
                       );
                       provider.saveRequestToCollection(item.id, newReq);
                       provider.openOrSelectRequest(newReq);

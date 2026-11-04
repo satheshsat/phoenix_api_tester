@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/environment.dart';
-import '../models/key_value_item.dart';
 import '../providers/api_provider.dart';
 import 'key_value_editor.dart';
 
@@ -266,9 +265,7 @@ class _EnvironmentDialogState extends State<EnvironmentDialog> {
                 final newEnv = Environment(
                   id: 'env_${DateTime.now().millisecondsSinceEpoch}',
                   name: controller.text.trim(),
-                  variables: [
-                    KeyValueItem(key: 'baseUrl', value: 'https://'),
-                  ],
+                  variables: [],
                 );
                 provider.addEnvironment(newEnv);
                 Navigator.pop(ctx);

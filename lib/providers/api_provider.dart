@@ -39,7 +39,7 @@ class ApiProvider extends ChangeNotifier {
       _tabs.add(ApiRequest(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         name: 'New Request',
-        url: 'https://jsonplaceholder.typicode.com/posts/1',
+        url: '',
       ));
     }
     if (_activeTabIndex >= _tabs.length) {
@@ -94,34 +94,17 @@ class ApiProvider extends ChangeNotifier {
     _collections = await StorageService.loadCollections();
     _history = await StorageService.loadHistory();
 
-    // Setup initial default tab
+    // Setup initial default empty tab
     if (_tabs.isEmpty) {
-      // Find first request in collections if available
-      ApiRequest? firstReq = _findFirstRequest(_collections);
-      if (firstReq != null) {
-        _tabs.add(firstReq.copyWith());
-      } else {
-        _tabs.add(ApiRequest(
-          id: 'tab_init_${DateTime.now().millisecondsSinceEpoch}',
-          name: 'Get All Posts',
-          method: 'GET',
-          url: '{{baseUrl}}/posts?_limit=5',
-        ));
-      }
+      _tabs.add(ApiRequest(
+        id: 'tab_init_${DateTime.now().millisecondsSinceEpoch}',
+        name: 'New Request',
+        method: 'GET',
+        url: '',
+      ));
     }
 
     notifyListeners();
-  }
-
-  ApiRequest? _findFirstRequest(List<CollectionItem> items) {
-    for (final item in items) {
-      if (item.type == CollectionItemType.request && item.request != null) {
-        return item.request;
-      }
-      final childReq = _findFirstRequest(item.children);
-      if (childReq != null) return childReq;
-    }
-    return null;
   }
 
   // Tab Operations
@@ -134,7 +117,7 @@ class ApiProvider extends ChangeNotifier {
             id: 'tab_${DateTime.now().millisecondsSinceEpoch}_${_tabs.length}',
             name: 'New Request',
             method: 'GET',
-            url: '{{baseUrl}}/',
+            url: '',
           );
     _tabs.add(newReq);
     _activeTabIndex = _tabs.length - 1;
