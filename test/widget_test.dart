@@ -36,7 +36,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Phoenix API Tester'), findsOneWidget);
-    expect(find.text('TALEND CLONE'), findsOneWidget);
   });
 
   test('cURL export and import test', () {

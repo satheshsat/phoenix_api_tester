@@ -109,15 +109,6 @@ class _MainScreenState extends State<MainScreen> {
                   color: Theme.of(context).primaryColor.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: Text(
-                  'TALEND CLONE',
-                  style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).primaryColor,
-                    letterSpacing: 0.5,
-                  ),
-                ),
               ),
               const SizedBox(width: 16),
 
