@@ -14,9 +14,131 @@ struct _MyApplication {
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
 
+static void setup_window_icon(GtkWindow* window);
+
 // Called when first Flutter frame received.
 static void first_frame_cb(MyApplication* self, FlView* view) {
-  gtk_widget_show(gtk_widget_get_toplevel(GTK_WIDGET(view)));
+  GtkWindow* window = GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(view)));
+  gtk_widget_show(GTK_WIDGET(window));
+  setup_window_icon(window);
+}
+
+// Sets the window icon for the application.
+static void setup_window_icon(GtkWindow* window) {
+  // Ensure application ID and prgname are configured.
+  g_set_prgname(APPLICATION_ID);
+#ifdef GDK_WINDOWING_X11
+  gdk_set_program_class(APPLICATION_ID);
+#endif
+
+  // Set the icon name matching the application ID (phoenix.api.tester).
+  gtk_window_set_icon_name(window, APPLICATION_ID);
+  gtk_window_set_default_icon_name(APPLICATION_ID);
+
+  // 1. Try loading directly from the bundle relative to the executable.
+  g_autofree gchar* exe_path = g_file_read_link("/proc/self/exe", nullptr);
+  g_autofree gchar* exe_dir = nullptr;
+  if (exe_path != nullptr) {
+    exe_dir = g_path_get_dirname(exe_path);
+  }
+
+  // Register bundle icon directories with default GtkIconTheme
+  GtkIconTheme* theme = gtk_icon_theme_get_default();
+  if (exe_dir != nullptr && theme != nullptr) {
+    g_autofree gchar* data_icons = g_build_filename(exe_dir, "data", "icons", nullptr);
+    if (g_file_test(data_icons, G_FILE_TEST_IS_DIR)) {
+      gtk_icon_theme_append_search_path(theme, data_icons);
+    }
+    g_autofree gchar* share_icons = g_build_filename(exe_dir, "share", "icons", nullptr);
+    if (g_file_test(share_icons, G_FILE_TEST_IS_DIR)) {
+      gtk_icon_theme_append_search_path(theme, share_icons);
+    }
+    g_autofree gchar* data_dir = g_build_filename(exe_dir, "data", nullptr);
+    if (g_file_test(data_dir, G_FILE_TEST_IS_DIR)) {
+      gtk_icon_theme_append_search_path(theme, data_dir);
+    }
+  }
+
+  // Search candidate paths for the icon image
+  const gchar* rel_paths[] = {
+    "data/app_icon.png",
+    "data/flutter_assets/assets/icon/icon.png",
+    "data/flutter_assets/assets/icon/icon.jpg",
+    "runner/resources/app_icon.png",
+    "assets/icon/icon.png",
+    "assets/icon/icon.jpg",
+    "app_icon.png"
+  };
+
+  g_autoptr(GdkPixbuf) base_pixbuf = nullptr;
+
+  if (exe_dir != nullptr) {
+    for (const gchar* rel_path : rel_paths) {
+      g_autofree gchar* full_path = g_build_filename(exe_dir, rel_path, nullptr);
+      if (g_file_test(full_path, G_FILE_TEST_EXISTS)) {
+        base_pixbuf = gdk_pixbuf_new_from_file(full_path, nullptr);
+        if (base_pixbuf != nullptr) {
+          break;
+        }
+      }
+    }
+  }
+
+  // 2. Fallback: check standard user/system icon directories.
+  if (base_pixbuf == nullptr) {
+    const gchar* home_dir = g_get_home_dir();
+    if (home_dir != nullptr) {
+      const gchar* sizes[] = {"512x512", "256x256", "128x128", "64x64", "48x48", "32x32", "16x16"};
+      for (const gchar* size_str : sizes) {
+        g_autofree gchar* user_icon = g_build_filename(
+            home_dir, ".local", "share", "icons", "hicolor", size_str, "apps",
+            APPLICATION_ID ".png", nullptr);
+        if (g_file_test(user_icon, G_FILE_TEST_EXISTS)) {
+          base_pixbuf = gdk_pixbuf_new_from_file(user_icon, nullptr);
+          if (base_pixbuf != nullptr) {
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  // 3. Fallback: check working directory for development runs.
+  if (base_pixbuf == nullptr) {
+    const gchar* dev_paths[] = {
+      "linux/runner/resources/app_icon.png",
+      "assets/icon/icon.png",
+      "../assets/icon/icon.png",
+      "../../assets/icon/icon.png"
+    };
+    for (const gchar* dev_path : dev_paths) {
+      if (g_file_test(dev_path, G_FILE_TEST_EXISTS)) {
+        base_pixbuf = gdk_pixbuf_new_from_file(dev_path, nullptr);
+        if (base_pixbuf != nullptr) {
+          break;
+        }
+      }
+    }
+  }
+
+  // Set the icon on window with multiple scaled resolutions (16 to 512)
+  if (base_pixbuf != nullptr) {
+    GList* icon_list = nullptr;
+    const int target_sizes[] = {16, 24, 32, 48, 64, 128, 256, 512};
+    for (int s : target_sizes) {
+      GdkPixbuf* scaled = gdk_pixbuf_scale_simple(
+          base_pixbuf, s, s, GDK_INTERP_BILINEAR);
+      if (scaled != nullptr) {
+        icon_list = g_list_append(icon_list, scaled);
+      }
+    }
+    icon_list = g_list_append(icon_list, g_object_ref(base_pixbuf));
+
+    gtk_window_set_icon_list(window, icon_list);
+    gtk_window_set_default_icon_list(icon_list);
+
+    g_list_free_full(icon_list, g_object_unref);
+  }
 }
 
 // Implements GApplication::activate.
@@ -53,6 +175,7 @@ static void my_application_activate(GApplication* application) {
   }
 
   gtk_window_set_default_size(window, 1280, 720);
+  setup_window_icon(window);
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();
   fl_dart_project_set_dart_entrypoint_arguments(

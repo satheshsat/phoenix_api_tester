@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Phoenix Api Tester
+GenericName=API Tester
+Comment=Phoenix Api Tester - REST & HTTP API Client
+Icon=phoenix.api.tester
+Exec=phoenix_api_tester
+Terminal=false
+Categories=Development;Debugger;Network;WebDevelopment;
+StartupWMClass=phoenix.api.tester
+Keywords=api;rest;http;tester;client;

@@ -126,3 +126,41 @@ if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
     COMPONENT Runtime)
 endif()
+
+# Install application icon into the bundle
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/runner/resources/app_icon.png")
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/runner/resources/app_icon.png"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}"
+    COMPONENT Runtime)
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/runner/resources/app_icon.png"
+    DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
+    COMPONENT Runtime)
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/runner/resources/app_icon.png"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/512x512/apps"
+    RENAME "${APPLICATION_ID}.png"
+    COMPONENT Runtime)
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/runner/resources/app_icon.png"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/pixmaps"
+    RENAME "${APPLICATION_ID}.png"
+    COMPONENT Runtime)
+endif()
+
+# Install hicolor icons hierarchy into bundle data and share directory
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/runner/resources/icons")
+  install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/runner/resources/icons/"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor"
+    COMPONENT Runtime)
+  install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/runner/resources/icons/"
+    DESTINATION "${INSTALL_BUNDLE_DATA_DIR}/icons"
+    COMPONENT Runtime)
+endif()
+
+# Install desktop entry file into the bundle
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/phoenix.api.tester.desktop")
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/phoenix.api.tester.desktop"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}"
+    COMPONENT Runtime)
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/phoenix.api.tester.desktop"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications"
+    COMPONENT Runtime)
+endif()
